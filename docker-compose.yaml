@@ -1,14 +1,20 @@
 services:
     db:
         image: postgres:16-alpine
-        env_file:
-            - ./.env
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER:-log_parser}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-log_parser}
+            POSTGRES_DB: ${POSTGRES_DB:-log_parser}
         ports:
             - "5432:5432"
         volumes:
             - db_data:/var/lib/postgresql/data
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U log_parser -d log_parser"]
+            test:
+                [
+                    "CMD-SHELL",
+                    'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"',
+                ]
             interval: 5s
             timeout: 5s
             retries: 10
@@ -20,7 +26,7 @@ services:
         environment:
             PORT: ${PORT:-8080}
             LOG_LEVEL: ${LOG_LEVEL:-info}
-            DATABASE_URL: ${DATABASE_URL:-postgres://log_parser:log_parser@db:5432/log_parser?sslmode=disable}
+            DATABASE_URL: postgres://${POSTGRES_USER:-log_parser}:${POSTGRES_PASSWORD:-log_parser}@db:5432/${POSTGRES_DB:-log_parser}?sslmode=disable
             DATA_DIR: ${DATA_DIR:-/app/data}
         ports:
             - "${HOST_PORT:-8081}:8080"
