@@ -30,6 +30,21 @@ docker compose up -d --build
 
 ---
 
+## Service Structure
+
+- `cmd/server` - application entrypoint and bootstrap code.
+- `internal/config` - environment loading and logger setup.
+- `internal/db` - PostgreSQL pool setup and database migrations.
+- `internal/dto` - request and response data structures.
+- `internal/handlers` - HTTP handlers for API endpoints.
+- `internal/http` - HTTP server setup, routing, and middleware wiring.
+- `internal/middleware` - shared HTTP middleware and helper utilities.
+- `internal/parser` - input reading and log parsing logic.
+- `internal/repository` - database access layer for logs, nodes, and ports.
+- `internal/service` - application services that coordinate parsing and persistence.
+
+---
+
 
 ## API
 
