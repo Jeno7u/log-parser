@@ -19,7 +19,8 @@ func main() {
 	config := config.InitConfig(log)
 
 	// db setup
-	pool := db.NewPostgresPool(config.PostgresConnString)
+	db.MigrateDatabase(config.PostgresConnString, log)
+	pool := db.NewPostgresPool(config.PostgresConnString, log)
 	defer pool.Close()
 
 	// creating repositories

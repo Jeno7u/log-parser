@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -13,10 +13,11 @@ import (
 	"github.com/pressly/goose"
 )
 
-func NewPostgresPool(postgresConnString string) *pgxpool.Pool {
+func NewPostgresPool(postgresConnString string, log *slog.Logger) *pgxpool.Pool {
 	poolConfig, err := pgxpool.ParseConfig(postgresConnString)
 	if err != nil {
-		log.Fatalln("got error when tried to parse db conn string, ", err)
+		log.Error("got error when tried to parse db conn string", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
 	// TODO: move this constants to env config
@@ -28,29 +29,33 @@ func NewPostgresPool(postgresConnString string) *pgxpool.Pool {
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
-		log.Fatalln("got error when tried to create conn pool, ", err)
+		log.Error("got error when tried to create conn pool", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
-	log.Println("Established connection pool to postgres. Success!")
+	log.Info("established connection pool to postgres successfully")
 	return pool
 }
 
 // migrate db
-func MigrateDatabase(postgresConnString string) {
+func MigrateDatabase(postgresConnString string, log *slog.Logger) {
 	db, err := sql.Open("pgx", postgresConnString)
 	if err != nil {
-		log.Fatalln("got error when tried to establish connection during migration, ", err)
+		log.Error("got error when tried to establish connection during migration", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
 	// verify connection
 	if err := db.Ping(); err != nil {
-		log.Fatalln("got error when tried to establish connection during migration, ", err)
+		log.Error("got error when tried to establish connection during migration", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
 	// perform migration
 	err = goose.SetDialect("postgres")
 	if err != nil {
-		log.Fatalln("got error when tried to set goose dialect, ", err)
+		log.Error("got error when tried to set goose dialect", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
 	migrationsPath := firstExistingPath(
@@ -60,10 +65,11 @@ func MigrateDatabase(postgresConnString string) {
 	)
 
 	if err := goose.Up(db, migrationsPath); err != nil {
-		log.Fatalln("got error during migration, ", err)
+		log.Error("got error during migration", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
-	log.Println("migration was performed successfully!")
+	log.Info("migration was performed successfully")
 
 }
 
