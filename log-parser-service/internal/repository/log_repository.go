@@ -15,7 +15,6 @@ type LogRepository interface {
 	GetLogByID(ctx context.Context, logID string) (dto.Log, error)
 	CreateLinks(ctx context.Context, logID string, links []dto.TopologyLink) error
 	ListLinksByLogID(ctx context.Context, logID string) ([]dto.TopologyLink, error)
-	CreateNodeInfo(ctx context.Context, logID string, infos []dto.NodeInfo) error
 }
 
 type logRepository struct {
