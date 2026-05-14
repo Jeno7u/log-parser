@@ -33,7 +33,7 @@ func (r *nodeRepository) CreateNodes(ctx context.Context, logID string, nodes []
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	for _, node := range nodes {
 		if _, err := tx.Exec(ctx, query, logID, node.NodeDesc, node.NumPorts, node.NodeType, node.ClassVersion, node.BaseVersion, node.SystemImageGUID, node.NodeGUID, node.PortGUID); err != nil {
@@ -96,7 +96,7 @@ func (r *nodeRepository) CreateNodeInfo(ctx context.Context, logID string, infos
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	for _, info := range infos {
 		if _, err := tx.Exec(ctx, query, logID, info.SWGUID, info.Key, info.Value); err != nil {

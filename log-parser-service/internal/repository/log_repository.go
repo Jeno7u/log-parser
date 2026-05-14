@@ -79,7 +79,7 @@ func (r *logRepository) CreateLinks(ctx context.Context, logID string, links []d
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	for _, link := range links {
 		if _, err := tx.Exec(ctx, query, logID, link.NodeID, link.PortID, link.RelationType); err != nil {

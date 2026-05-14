@@ -36,7 +36,7 @@ func (r *portRepository) CreatePorts(ctx context.Context, logID string, nodeIDs 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	for _, port := range ports {
 		nodeID, ok := nodeIDs[port.NodeGUID]
