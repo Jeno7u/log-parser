@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Jeno7u/log-parser/internal/dto"
@@ -16,17 +17,20 @@ type ParseService interface {
 }
 
 type Parse struct {
+	dataDir  string
 	logRepo  repository.LogRepository
 	nodeRepo repository.NodeRepository
 	portRepo repository.PortRepository
 }
 
-func NewParse(logRepo repository.LogRepository, nodeRepo repository.NodeRepository, portRepo repository.PortRepository) ParseService {
-	return &Parse{logRepo: logRepo, nodeRepo: nodeRepo, portRepo: portRepo}
+func NewParse(dataDir string, logRepo repository.LogRepository, nodeRepo repository.NodeRepository, portRepo repository.PortRepository) ParseService {
+	return &Parse{dataDir: dataDir, logRepo: logRepo, nodeRepo: nodeRepo, portRepo: portRepo}
 }
 
 func (s *Parse) Parse(ctx context.Context, sourcePath string, fileName string) (string, error) {
-	inputs, err := parser.ReadInputs(sourcePath)
+	resolvedPath := s.resolveSourcePath(sourcePath)
+
+	inputs, err := parser.ReadInputs(resolvedPath)
 	if err != nil {
 		return "", err
 	}
@@ -37,10 +41,10 @@ func (s *Parse) Parse(ctx context.Context, sourcePath string, fileName string) (
 	}
 
 	if fileName == "" {
-		fileName = filepath.Base(sourcePath)
+		fileName = filepath.Base(resolvedPath)
 	}
 
-	logID, err := s.logRepo.CreateLog(ctx, dto.Log{FileName: fileName, SourcePath: sourcePath, Status: "parsing", CreatedAt: time.Now(), UpdatedAt: time.Now()})
+	logID, err := s.logRepo.CreateLog(ctx, dto.Log{FileName: fileName, SourcePath: resolvedPath, Status: "parsing", CreatedAt: time.Now(), UpdatedAt: time.Now()})
 	if err != nil {
 		return "", err
 	}
@@ -95,4 +99,21 @@ func (s *Parse) Parse(ctx context.Context, sourcePath string, fileName string) (
 	}
 
 	return logID, nil
+}
+
+func (s *Parse) resolveSourcePath(sourcePath string) string {
+	if filepath.IsAbs(sourcePath) {
+		return sourcePath
+	}
+
+	cleanPath := filepath.Clean(sourcePath)
+	dataPrefix := "data" + string(filepath.Separator)
+	if cleanPath == "data" {
+		return s.dataDir
+	}
+	if strings.HasPrefix(cleanPath, dataPrefix) {
+		cleanPath = strings.TrimPrefix(cleanPath, dataPrefix)
+	}
+
+	return filepath.Join(s.dataDir, cleanPath)
 }
