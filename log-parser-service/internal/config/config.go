@@ -1,8 +1,7 @@
 package config
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/lpernett/godotenv"
@@ -15,30 +14,23 @@ type Config struct {
 	DataDir            string
 }
 
-func InitConfig() Config {
+func InitConfig(log *slog.Logger) Config {
 	_ = godotenv.Load(".env")
 	_ = godotenv.Load("../.env")
 
-	postgresConnString := fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=disable",
-		getEnv("POSTGRES_USER", "postgres"),
-		getEnv("POSTGRES_PASSWORD", "password"),
-		getEnv("POSTGRES_HOST", "postgres"),
-		getEnv("POSTGRES_DB", "db"),
-	)
-
 	return Config{
-		PostgresConnString: postgresConnString,
-		Port:               getEnv("PORT", "8080"),
-		LogLevel:           getEnv("LOG_LEVEL", "info"),
-		DataDir:            getEnv("DATA_DIR", "/app/data"),
+		PostgresConnString: getEnv("DATABASE_URL", "postgres://postgres:password@db:5432/log-db?sslmode=disable", log),
+		Port:               getEnv("PORT", "8080", log),
+		LogLevel:           getEnv("LOG_LEVEL", "info", log),
+		DataDir:            getEnv("DATA_DIR", "/app/data", log),
 	}
 }
 
-func getEnv(key, fallback string) string {
+func getEnv(key, fallback string, log *slog.Logger) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
 
-	log.Printf("cant find env by key: %v, using: %v", key, fallback)
+	log.Info("cant find env by key: %v, using: %v", key, fallback)
 	return fallback
 }
