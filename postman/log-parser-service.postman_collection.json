@@ -1,0 +1,130 @@
+{
+    "info": {
+        "name": "log-parser-service",
+        "description": "API collection for parsing log archives and reading topology data.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Parse log archive",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/parse/",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "parse", ""]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"path\": \"{{samplePath}}\"\n}"
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "const json = pm.response.json();",
+                            "if (json.log_id) {",
+                            "  pm.collectionVariables.set('logId', json.log_id);",
+                            "}",
+                            "pm.test('parse returns log_id', function () {",
+                            "  pm.expect(json.log_id).to.be.a('string').and.not.empty;",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Get log metadata",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/log/{{logId}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "log", "{{logId}}"]
+                }
+            }
+        },
+        {
+            "name": "Get topology",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/topology/{{logId}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "topology", "{{logId}}"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "const json = pm.response.json();",
+                            "let nodeId = '';",
+                            "if (json.groups && json.groups.length > 0 && json.groups[0].nodes && json.groups[0].nodes.length > 0) {",
+                            "  nodeId = json.groups[0].nodes[0].node_id || '';",
+                            "}",
+                            "if (nodeId) {",
+                            "  pm.collectionVariables.set('nodeId', nodeId);",
+                            "}",
+                            "pm.test('topology returns groups', function () {",
+                            "  pm.expect(json.groups).to.be.an('array');",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Get log node",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/node/{{nodeId}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "node", "{{nodeId}}"]
+                }
+            }
+        },
+        {
+            "name": "Get node ports",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/port/{{nodeId}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "port", "{{nodeId}}"]
+                }
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8081"
+        },
+        {
+            "key": "samplePath",
+            "value": "sample"
+        },
+        {
+            "key": "logId",
+            "value": ""
+        },
+        {
+            "key": "nodeId",
+            "value": ""
+        }
+    ]
+}
