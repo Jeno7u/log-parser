@@ -32,7 +32,7 @@ func getEnv(key, fallback string, log *slog.Logger) string {
 	}
 
 	if log != nil {
-		log.Info("cant find env by key: %v, using: %v", key, fallback)
+		log.Info("cant find env by key", slog.String("key", key), slog.String("fallback", fallback))
 	}
 
 	return fallback
