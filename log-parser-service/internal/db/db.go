@@ -8,18 +8,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose"
 )
-
-type DBConn interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
-}
 
 func NewPostgresPool(postgresConnString string) *pgxpool.Pool {
 	poolConfig, err := pgxpool.ParseConfig(postgresConnString)
