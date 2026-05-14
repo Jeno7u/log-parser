@@ -1,5 +1,5 @@
 # ----- Build stage -----
-FROM golang:1.23-alpine AS build
+FROM golang:1.26.2-alpine AS build
 
 WORKDIR /src/log-parser-service
 
@@ -15,7 +15,7 @@ COPY . ./
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 GOOS=linux go build -o /out/log-parser-service ./cmd/log-parser
+    CGO_ENABLED=0 GOOS=linux go build -o /out/log-parser-service ./cmd/server
 
 
 # ----- Run stage -----
@@ -28,6 +28,7 @@ RUN apk add --no-cache ca-certificates \
 WORKDIR /app
 
 COPY --from=build /out/log-parser-service ./log-parser-service
+COPY --from=build /src/log-parser-service/internal/db/migrations ./internal/db/migrations
 
 RUN chmod 755 /app/log-parser-service \
     && chown -R appuser:appgroup /app
