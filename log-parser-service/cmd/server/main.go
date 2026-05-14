@@ -27,7 +27,7 @@ func main() {
 	logRepository := repository.NewLogRepository(pool)
 	nodeRepository := repository.NewNodeRepository(pool)
 	portRepository := repository.NewPortRepository(pool)
-	parseService := service.NewParse(logRepository, nodeRepository, portRepository)
+	parseService := service.NewParse(config.DataDir, logRepository, nodeRepository, portRepository)
 
 	// creating handlers
 	parseHandler := handlers.NewParse(parseService, log)

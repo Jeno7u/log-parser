@@ -111,9 +111,7 @@ func (s *Parse) resolveSourcePath(sourcePath string) string {
 	if cleanPath == "data" {
 		return s.dataDir
 	}
-	if strings.HasPrefix(cleanPath, dataPrefix) {
-		cleanPath = strings.TrimPrefix(cleanPath, dataPrefix)
-	}
+	cleanPath = strings.TrimPrefix(cleanPath, dataPrefix)
 
 	return filepath.Join(s.dataDir, cleanPath)
 }
